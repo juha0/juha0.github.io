@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>juha0&#39;s blog</title>
+    <title>Juha0&#39;s Blog</title>
     <link>http://juha0.github.io/</link>
-    <description>Recent content on juha0&#39;s blog</description>
+    <description>Recent content on Juha0&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Sat, 11 Feb 2023 23:45:31 +0800</lastBuildDate><atom:link href="http://juha0.github.io/index.xml" rel="self" type="application/rss+xml" />
