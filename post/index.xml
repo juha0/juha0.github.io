@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on juha0&#39;s blog</title>
+    <link>http://juha0.github.io/post/</link>
+    <description>Recent content in Posts on juha0&#39;s blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 11 Feb 2023 23:45:31 +0800</lastBuildDate><atom:link href="http://juha0.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>最小的调度单位——Pod</title>
+      <link>http://juha0.github.io/post/pod/</link>
+      <pubDate>Sat, 11 Feb 2023 23:45:31 +0800</pubDate>
+      
+      <guid>http://juha0.github.io/post/pod/</guid>
+      <description>为什么需要Pod？ 实际的项目实践中，有些应用之间有着密切的协作关系，使得它们必须部署在同一个机器上。 发生直接的文件交换 使用localhost</description>
+    </item>
+    
+  </channel>
+</rss>

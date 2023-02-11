@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>最小的调度单位——Pod - juha0&#39;s blog</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="juha0" /><meta name="description" content="为什么需要Pod？ 实际的项目实践中，有些应用之间有着密切的协作关系，使得它们必须部署在同一个机器上。 发生直接的文件交换 使用localhost" /><meta name="keywords" content="Go, k8s, leetcode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.107.0 with theme even" />
+
+
+<link rel="canonical" href="http://juha0.github.io/post/pod/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+<link href="/sass/main.min.f92fd13721ddf72129410fd8250e73152cc6f2438082b6c0208dc24ee7c13fc4.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
+
+
+<meta property="og:title" content="最小的调度单位——Pod" />
+<meta property="og:description" content="为什么需要Pod？ 实际的项目实践中，有些应用之间有着密切的协作关系，使得它们必须部署在同一个机器上。 发生直接的文件交换 使用localhost" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://juha0.github.io/post/pod/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-02-11T23:45:31+08:00" />
+<meta property="article:modified_time" content="2023-02-11T23:45:31+08:00" />
+
+<meta itemprop="name" content="最小的调度单位——Pod">
+<meta itemprop="description" content="为什么需要Pod？ 实际的项目实践中，有些应用之间有着密切的协作关系，使得它们必须部署在同一个机器上。 发生直接的文件交换 使用localhost"><meta itemprop="datePublished" content="2023-02-11T23:45:31+08:00" />
+<meta itemprop="dateModified" content="2023-02-11T23:45:31+08:00" />
+<meta itemprop="wordCount" content="2480">
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="最小的调度单位——Pod"/>
+<meta name="twitter:description" content="为什么需要Pod？ 实际的项目实践中，有些应用之间有着密切的协作关系，使得它们必须部署在同一个机器上。 发生直接的文件交换 使用localhost"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">juha0&#39;s blog</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a>
+  </ul>
+
+  
+
+
+</nav>
+
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">juha0&#39;s blog</a>
+</div>
+
+
+
+
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li>
+  </ul>
+</nav>
+
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">最小的调度单位——Pod</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2023-02-11 </span>
+        
+          <span class="more-meta"> 2480 words </span>
+          <span class="more-meta"> 5 mins read </span>
+        
+      </div>
+    </header>
+
+    <div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  <div class="post-toc-content always-active">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#为什么需要pod"><strong>为什么需要Pod？</strong></a></li>
+    <li><a href="#实现原理">实现原理</a></li>
+    <li><a href="#基本概念">基本概念</a>
+      <ul>
+        <li><a href="#生命周期">生命周期</a></li>
+      </ul>
+    </li>
+    <li><a href="#特殊的-volumeprojected-volume">特殊的 Volume——Projected Volume</a>
+      <ul>
+        <li><a href="#secret">Secret</a></li>
+        <li><a href="#configmap">ConfigMap</a></li>
+        <li><a href="#downward-api">Downward API</a></li>
+      </ul>
+    </li>
+    <li><a href="#service-account">Service Account</a></li>
+    <li><a href="#容器健康检查和恢复机制">容器健康检查和恢复机制</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+    <div class="post-content">
+      <h1 id="为什么需要pod"><strong>为什么需要Pod？</strong></h1>
+<ol>
+<li>实际的项目实践中，有些应用之间有着密切的协作关系，使得它们必须部署在同一个机器上。
+<ol>
+<li>发生直接的文件交换</li>
+<li>使用localhost、Socket文件进行本地通信</li>
+<li>频繁远程调用</li>
+<li>共享某些 Linux Namespace</li>
+</ol>
+</li>
+<li>成组调度问题：由于机器资源的限制，Docker Swarm 逐个启动容器进行调度的方式使得“成组”的应用不一定能够部署在同一台机器。</li>
+<li>容器设计模式：当需要再一个容器内跑多个功能不相关的应用时应首先考虑是否可以描述为一个Pod里的多个容器
+<ol>
+<li>sidecar：在一个 Pod 中，启动一个辅助容器，来完成一些独立于主进程（主容器）之外的工作（可使用initContainer）</li>
+</ol>
+</li>
+</ol>
+<h1 id="实现原理">实现原理</h1>
+<p>Pod 只是一个<strong>逻辑概念</strong>。Kubernetes实际处理的仍是Linux容器的Namespace、Cgroups，而非所谓的Pod隔离环境。</p>
+<p>Pod 是共享了某些资源的容器组，其中所有容器共享的同一个（Infra 容器）Network Namespace，可以声明同一个Volume。</p>
+<blockquote>
+<p>Infra容器使用的镜像是一个使用汇编语言编写的，永远处于“暂停”状态的容器</p>
+</blockquote>
+<h1 id="基本概念">基本概念</h1>
+<p>凡是调度、存储、网络及安全相关的属性几乎都属于Pod级别</p>
+<ul>
+<li>nodeSelector：将 Pod 与 Node 绑定的字段</li>
+<li>nodeName：一般由调度器负责，通常在完成调度后填写</li>
+<li>hostAliases：定义了Pod的hosts文件内容（如 /etc/hosts）</li>
+<li>……</li>
+</ul>
+<h2 id="生命周期">生命周期</h2>
+<p>pod.status.phase 是 Pod 的当前状态，有如下几种可能：</p>
+<ul>
+<li><strong>Pending</strong>：Pod 的 YAML 文件已经提交给了 Kubernetes，API 对象已经被创建并保存在 Etcd 当中。但是，这个 Pod 里有些容器因为某种原因而不能被顺利创建。比如，调度不成功。</li>
+<li><strong>Succeeded</strong>：该状态表示Pod 里的所有容器都正常运行完毕，并且已经退出了。这种情况在运行一次性任务时最为常见</li>
+<li><strong>Running</strong>：这个状态下，Pod 已经调度成功，跟一个具体的节点绑定。它包含的容器都已经创建成功，并且至少有一个正在运行中</li>
+<li><strong>Failed</strong>：这个状态下，Pod 里至少有一个容器以不正常的状态（非 0 的返回码）退出</li>
+<li><strong>Unknown</strong>：这是一个异常状态，意味着 Pod 的状态不能持续地被 kubelet 汇报给 kube-apiserver，这很有可能是主从节点（Master 和 Kubelet）间的通信出现了问题</li>
+</ul>
+<p>Pod 对象的 Status 字段，还可以再细分出一组 <strong>Conditions</strong>。这些细分状态的值包括：<strong>PodScheduled</strong>、<strong>Ready</strong>、<strong>Initialized</strong>，以及 <strong>Unschedulable</strong>。它们主要用于描述造成当前 Status 的具体原因是什么。</p>
+<p>Running 与 Ready 的<strong>区别</strong>：Running 表示 health prober 通过，而 Ready 表示 readiness prober 通过</p>
+<h1 id="特殊的-volumeprojected-volume">特殊的 Volume——Projected Volume</h1>
+<p>Projected Volume 可以为容器提供预先准备好的数据。</p>
+<h2 id="secret">Secret</h2>
+<p>Secret 可以将Pod想访问的加密数据存放在 Etcd 中，Pod 可以通过挂载 Volume 的方式访问 Secret 的加密信息。</p>
+<p>（Secret 可以以数据卷的形式挂载，也可以作为<a href="https://kubernetes.io/zh-cn/docs/concepts/containers/container-environment/">环境变量</a> 暴露给 Pod 中的容器使用。）</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="c"># 投射卷形式</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">v1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">Pod</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">mypod</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">spec</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">containers</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">mypod</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">redis</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">volumeMounts</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">foo</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;/etc/foo&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">readOnly</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">volumes</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">foo</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">secret</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">secretName</span><span class="p">:</span><span class="w"> </span><span class="l">mysecret</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">items</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l">username</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l">my-group/my-username</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="configmap">ConfigMap</h2>
+<p>ConfigMap 是一种 API 对象，用来将非机密性的数据保存到键值对中。使用时， <a href="https://kubernetes.io/zh-cn/docs/concepts/workloads/pods/">Pods</a> 可以将其用作环境变量、命令行参数或者存储卷中的配置文件。ConfigMap 使用方式与 Secret 基本相同。</p>
+<p>创建一个 ConfigMap:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="c"># ConfigMap</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">v1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">ConfigMap</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">game-demo</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">data</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="c"># 类属性键；每一个键都映射到一个简单的值</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">player_initial_lives</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;3&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">ui_properties_file_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;user-interface.properties&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="c"># 类文件键</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">game.properties</span><span class="p">:</span><span class="w"> </span><span class="p">|</span><span class="sd">
+</span></span></span><span class="line"><span class="cl"><span class="sd">    enemy.types=aliens,monsters
+</span></span></span><span class="line"><span class="cl"><span class="sd">    player.maximum-lives=5    </span><span class="w">    
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">user-interface.properties</span><span class="p">:</span><span class="w"> </span><span class="p">|</span><span class="sd">
+</span></span></span><span class="line"><span class="cl"><span class="sd">    color.good=purple
+</span></span></span><span class="line"><span class="cl"><span class="sd">    color.bad=yellow
+</span></span></span><span class="line"><span class="cl"><span class="sd">    allow.textmode=true  </span><span class="w">    
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>在 Pod 中使用 ConfigMap（ConfigMap 作为数据卷挂载）：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">v1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">Pod</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">mypod</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">spec</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">containers</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">mypod</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">redis</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">volumeMounts</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">foo</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;/etc/foo&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">readOnly</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">volumes</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">foo</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">configMap</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">myconfigmap</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="downward-api">Downward API</h2>
+<p><strong>Downward API</strong> 允许容器在不使用 Kubernetes 客户端或 API 服务器的情况下获得自己或集群的信息。</p>
+<p>在 Kubernetes 中，有两种方法可以将 Pod 和容器字段暴露给运行中的容器：</p>
+<ul>
+<li>作为<a href="https://kubernetes.io/zh-cn/docs/tasks/inject-data-application/environment-variable-expose-pod-information/">环境变量</a></li>
+<li>作为 <a href="https://kubernetes.io/zh-cn/docs/tasks/inject-data-application/downward-api-volume-expose-pod-information/">downwardAPI 卷中的文件</a></li>
+</ul>
+<p>这两种暴露 Pod 和容器字段的方式统称为 <strong>Downward API</strong>。Downward API 可使用的字段详见：<a href="https://kubernetes.io/zh-cn/docs/concepts/workloads/pods/downward-api/">Downward API</a></p>
+<blockquote>
+<p>Downward API 能够获取到的信息，一定是 Pod 里的容器进程启动之前就能够确定下来的信息</p>
+</blockquote>
+<p>Projected Volume 定义的信息若通过<strong>环境变量</strong>的方式出现在容器内，则<strong>不具备自动更新这些信息</strong>的能力。</p>
+<h1 id="service-account">Service Account</h1>
+<p>Service Account 对象的作用，就是 Kubernetes 系统内置的一种“服务账户”，它是 Kubernetes 进行权限分配的对象（访问Kubernetes API的权限能力）。Service Account 的授权信息和文件保存在一个特殊的Secret——<strong>ServiceAccountToken</strong>里。Kubernetes 其实在每个 Pod 创建的时候，自动在它的 spec.volumes 部分添加上了默认 ServiceAccountToken 的定义，然后自动给每个容器加上了对应的 volumeMounts 字段。这个过程对于用户来说是完全透明的。除了默认ServiceAccountToken，用户也可以自定义一些ServiceAccountToken。</p>
+<h1 id="容器健康检查和恢复机制">容器健康检查和恢复机制</h1>
+<p>思维导图</p>
+<p>通过在Pod里的容器定义健康检查“探针”（<a href="https://kubernetes.io/zh-cn/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/">Probe</a>），kubelet会根据该Probe的返回值确定容器的状态。</p>
+<p>Kubernetes 中并没有 Docker 的 Stop 语义。所以虽然是 Restart（重启），但实际却是重新创建了容器。</p>
+<p>Pod 恢复机制（restartPolicy，默认值为 Always）：Pod 状态异常时会被k8s 会重新创建。</p>
+<blockquote>
+<p>Pod （静态Pod，而非控制器，如Deployment，所创建的Pod）的恢复过程，永远都是发生在当前节点上，而不会跑到别的节点上去。事实上，一旦一个 Pod 与一个节点（Node）绑定，除非这个绑定发生了变化（pod.spec.node 字段被修改），否则它永远都不会离开这个节点。这也就意味着，如果这个宿主机宕机了，这个 Pod 也不会主动迁移到其他节点上去。</p>
+</blockquote>
+<p>restartPolicy的三种情况：</p>
+<ul>
+<li>Always：在任何情况下，只要容器不在运行状态，就自动重启容器</li>
+<li>OnFailure: 只在容器 异常时才自动重启容器</li>
+<li>Never: 从来不重启容器。</li>
+</ul>
+<p>restartPolicy 与 Status 对应关系的设计原理：</p>
+<ol>
+<li>只要 Pod 的 restartPolicy 指定的策略允许重启异常的容器（比如：Always），那么这个 Pod 就会保持 <strong>Running</strong> 状态，并进行容器重启。否则，Pod 就会进入 Failed 状态</li>
+<li>对于包含多个容器的 Pod，只有它里面<strong>所有的容器都进入异常状态后</strong>，Pod 才会进入 <strong>Failed</strong> 状态。在此之前，Pod 都是 Running 状态。此时，Pod 的 READY 字段会显示正常容器的个数</li>
+</ol>
+
+    </div>
+
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">juha0</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">
+        2023-02-11
+        
+    </span>
+  </p>
+  
+  
+</div>
+<footer class="post-footer">
+      
+      <nav class="post-nav">
+        
+        
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+
+  
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  <a href="http://juha0.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    2023<span class="heart"><i class="iconfont icon-heart"></i></span><span>juha0</span>
+  </span>
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js" integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js" integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin="anonymous"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.4ae89da218555efa0e7093a20b92017d2e1202b66fff9fc2edf4cb8d44b44c6e.js"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$','$'], ['\\(','\\)']],
+        }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3.0.5/es5/tex-mml-chtml.js" integrity="sha256-HGLuEfFcsUJGhvB8cQ8nr0gai9EucOOaIxFw7qxmd+w=" crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
